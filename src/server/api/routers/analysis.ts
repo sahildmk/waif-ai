@@ -33,7 +33,7 @@ export const analysisRouter = createTRPCRouter({
         }]
       })
 
-      console.log(`{analysis: ${response.data.choices[0]?.message?.content ?? "[]"}}`);
+      console.log(response.data.choices[0]?.message?.content);
 
       let promptResponse : PromptResponseType = []
       try {
