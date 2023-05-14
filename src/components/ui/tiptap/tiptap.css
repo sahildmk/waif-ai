@@ -1,0 +1,3 @@
+.ProseMirror {
+  @apply h-full rounded-md border border-zinc-200;
+}

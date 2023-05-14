@@ -1,6 +1,8 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import LoadingSpinner from "@/components/ui/loading-spinner";
 import { Textarea } from "@/components/ui/textarea";
+import Tiptap from "@/components/ui/tiptap/tiptap";
 import { AnalysisResponseType } from "@/server/api/routers/analysis";
 import { api } from "@/utils/api";
 import { type NextPage } from "next";
@@ -12,6 +14,17 @@ const Home: NextPage = () => {
   const [text, setText] = useState("");
   const [response, setResponse] = useState<AnalysisResponseType>();
   const prompt = api.analysis.analyse.useMutation();
+
+  const HandleSubmitPrompt = () => {
+    prompt.mutate(
+      { text: text },
+      {
+        onSuccess(data) {
+          if (data.ok) setResponse(data.value);
+        },
+      }
+    );
+  };
 
   return (
     <>
@@ -25,40 +38,32 @@ const Home: NextPage = () => {
           <h1 className="text-5xl">What Am I feeling?</h1>
           <Badge>AI</Badge>
         </div>
-        <div className="w-full max-w-3xl pb-5">
-          <Textarea
+        <div className="h-full w-full max-w-3xl pb-5">
+          {/* <Textarea
             rows={10}
             value={text}
             onChange={(e) => {
               setText(e.target.value);
             }}
-          />
+          /> */}
+          <Tiptap />
         </div>
-        <Button
-          variant={"default"}
-          onClick={() => {
-            prompt.mutate(
-              { text: text },
-              {
-                onSuccess(data) {
-                  setResponse(data);
-                },
-              }
-            );
-          }}
-        >
-          Submit
+        <Button variant={"default"} onClick={HandleSubmitPrompt}>
+          {prompt.isLoading ? <LoadingSpinner /> : <>Submit</>}
         </Button>
-        {prompt.isLoading && "Loading..."}
         <div>
           Response:{" "}
           {response?.parsedPromptResponse?.map((val, idx) => {
-            return <div key={idx}>{val.emotion}</div>;
+            return (
+              <div key={idx}>
+                {val.emotion} - {val.associatedText} <br /> <br />
+              </div>
+            );
           })}
         </div>
-        <div>
+        {/* <div>
           Total tokens: {response?.rawPromptResponse.usage?.total_tokens}
-        </div>
+        </div> */}
       </main>
     </>
   );
