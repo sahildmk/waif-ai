@@ -1,3 +1,8 @@
 .ProseMirror {
-  @apply h-full rounded-md border border-zinc-200;
+  @apply flex-1 rounded-md border border-zinc-200 p-5 transition-all focus:outline-zinc-300;
+}
+
+.ProseMirror mark {
+  @apply cursor-pointer rounded-md border border-blue-300 bg-blue-200 px-1 transition-all;
+  @apply hover:border-blue-400 hover:bg-blue-300 hover:px-[0.35rem] hover:py-[0.1rem];
 }
