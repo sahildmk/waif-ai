@@ -1,7 +1,10 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import LoadingSpinner from "@/components/ui/loading-spinner";
-import { SearchAndReplace } from "@/components/ui/tiptap/extensions/search-n-replace";
+import {
+  SearchAndReplace,
+  type SearchAndReplaceStorage,
+} from "@/components/ui/tiptap/extensions/search-n-replace";
 import Tiptap from "@/components/ui/tiptap/tiptap";
 import { type AnalysisResponseType } from "@/server/api/routers/analysis";
 import { api } from "@/utils/api";
@@ -11,10 +14,8 @@ import StarterKit from "@tiptap/starter-kit";
 import { type NextPage } from "next";
 import Head from "next/head";
 import { useState } from "react";
-import { type Range } from "@tiptap/core";
 
 const Home: NextPage = () => {
-  const [text, setText] = useState("");
   const [response, setResponse] = useState<AnalysisResponseType>();
   const prompt = api.analysis.analyse.useMutation();
 
@@ -28,17 +29,36 @@ const Home: NextPage = () => {
         disableRegex: false,
       }),
     ],
-    content: "<p>Hello World! 🌎️</p>",
   });
 
-  editor?.chain().setSearchTerm("hello world").run();
-
   const HandleSubmitPrompt = () => {
+    let text = editor?.getText();
+
+    if (!text) return;
+
+    text = text.trim();
+    text = text.replaceAll("\n", "-");
+
     prompt.mutate(
       { text: text },
       {
         onSuccess(data) {
-          if (data.ok) setResponse(data.value);
+          if (!data.ok) return;
+
+          setResponse(data.value);
+
+          data.value?.parsedPromptResponse.forEach((res) => {
+            editor?.chain().setSearchTerm(res.associatedText).run();
+
+            const sResults = (
+              editor?.storage.searchAndReplace as SearchAndReplaceStorage
+            ).results;
+
+            sResults.forEach((result) => {
+              editor?.chain().setTextSelection(result).run();
+              editor?.chain().setHighlight().run();
+            });
+          });
         },
       }
     );
@@ -74,15 +94,20 @@ const Home: NextPage = () => {
           <Button
             variant={"secondary"}
             onClick={() => {
-              let sResults = editor?.storage.searchAndReplace
-                .results as Range[];
+              console.log(response?.parsedPromptResponse);
 
-              console.log(sResults);
+              // response?.parsedPromptResponse.forEach((res) => {
+              //   editor?.chain().setSearchTerm(res.associatedText).run();
 
-              sResults.forEach((result) => {
-                editor?.chain().setTextSelection(result).run();
-                editor?.chain().setHighlight().run();
-              });
+              //   const sResults = (
+              //     editor?.storage.searchAndReplace as SearchAndReplaceStorage
+              //   ).results;
+
+              //   sResults.forEach((result) => {
+              //     editor?.chain().setTextSelection(result).run();
+              //     editor?.chain().setHighlight().run();
+              //   });
+              // });
 
               // editor?.chain().replace().run();
 
@@ -95,7 +120,7 @@ const Home: NextPage = () => {
           >
             Highlight
           </Button>
-          <div>
+          {/* <div>
             Response:{" "}
             {response?.parsedPromptResponse?.map((val, idx) => {
               return (
@@ -104,7 +129,7 @@ const Home: NextPage = () => {
                 </div>
               );
             })}
-          </div>
+          </div> */}
         </section>
         {/* <div>
           Total tokens: {response?.rawPromptResponse.usage?.total_tokens}

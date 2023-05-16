@@ -219,7 +219,7 @@ interface SearchAndReplaceOptions {
   disableRegex: boolean;
 }
 
-interface SearchAndReplaceStorage {
+export interface SearchAndReplaceStorage {
   searchTerm: string;
   replaceTerm: string;
   results: Range[];
